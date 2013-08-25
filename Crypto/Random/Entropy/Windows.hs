@@ -8,19 +8,20 @@
 -- code originally from the entropy package and thus is:
 --   Copyright (c) Thomas DuBuisson.
 --
+{-# LANGUAGE ForeignFunctionInterface #-}
 module Crypto.Random.Entropy.Windows
     ( WinCryptoAPI
     ) where
 
-import Data.ByteString.Internal as BI
 import Data.Int (Int32)
 import Data.Word (Word32, Word8)
 import Foreign.C.String (CString, withCString)
-import Foreign.C.Types
-import Foreign.Ptr (Ptr, nullPtr, castPtr)
+import Foreign.Ptr (Ptr, nullPtr)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Utils (toBool)
 import Foreign.Storable (peek)
+
+import Crypto.Random.Entropy.Sig
 
 -- Define the constants we need from WinCrypt.h 
 msDefProv :: String
@@ -36,9 +37,9 @@ cryptVerifyContext = 0xF0000000
 newtype WinCryptoAPI = WinCryptoAPI CryptCtx
 
 instance EntropyHandle WinCryptoAPI where
-    entropyOpen                   = fmap WinCryptoAPI <$> cryptAcquireCtx
-    entropyGather (WinCryptAPI h) = cryptGenRandom h
-    entropyClose  (WinCryptAPI h) = cryptReleaseCtx h
+    entropyOpen                    = fmap WinCryptoAPI `fmap` cryptAcquireCtx
+    entropyGather (WinCryptoAPI h) = cryptGenRandom h
+    entropyClose  (WinCryptoAPI h) = cryptReleaseCtx h
 
 type CryptCtx = Word32
 
@@ -50,11 +51,6 @@ foreign import stdcall unsafe "CryptGenRandom"
 foreign import stdcall unsafe "CryptReleaseContext"
    c_cryptReleaseCtx :: CryptCtx -> Word32 -> IO Int32
 
-wrap :: String -> Word32 -> ()
-wrap name w 
-    | toBool w == True = ()
-    | otherwise        = fail name
-
 cryptAcquireCtx :: IO (Maybe CryptCtx)
 cryptAcquireCtx = 
     alloca $ \handlePtr -> 
@@ -65,9 +61,13 @@ cryptAcquireCtx =
             else return Nothing
 
 cryptGenRandom :: CryptCtx -> Ptr Word8 -> Int -> IO Int
-cryptGenRandom h buf n =
-    success <- toBool `fmap` c_cryptGenRandom c (fromIntegral n) buf
+cryptGenRandom h buf n = do
+    success <- toBool `fmap` c_cryptGenRandom h (fromIntegral n) buf
     return $ if success then n else 0
 
 cryptReleaseCtx :: CryptCtx -> IO ()
-cryptReleaseCtx h = wrap "c_cryptReleaseCtx" `fmap` c_cryptReleaseCtx h 0
+cryptReleaseCtx h = do
+    success <- toBool `fmap` c_cryptReleaseCtx h 0
+    if success
+        then return ()
+        else fail "cryptReleaseCtx"

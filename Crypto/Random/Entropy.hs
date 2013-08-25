@@ -40,7 +40,7 @@ supportedBackends =
     openBackend (undefined :: RDRand),
 #endif
 #ifdef WINDOWS
-    openBackend (undefined :: WinCryptoApi)
+    openBackend (undefined :: WinCryptoAPI)
 #else
     openBackend (undefined :: DevRandom), openBackend (undefined :: DevURandom)
 #endif
