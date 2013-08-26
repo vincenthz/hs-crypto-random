@@ -42,3 +42,8 @@ class CPRG gen where
     -- However the returned CPRG might have been reseeded with entropy bits,
     -- so 2 calls with the same CPRG will not necessarily result in the same next CPRG.
     cprgGenerate :: Int -> gen -> (ByteString, gen)
+
+    -- | Similar to cprgGenerate except that the random data is mixed with pure entropy,
+    -- so the result is not reproducible after use, but it provides more guarantee,
+    -- theorically speaking, in term of the randomness generated.
+    cprgGenerateWithEntropy :: Int -> gen -> (ByteString, gen)

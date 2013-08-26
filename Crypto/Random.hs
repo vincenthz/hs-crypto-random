@@ -39,3 +39,6 @@ instance CPRG SystemRNG where
     cprgCreate entPool _                 = SystemRNG entPool
     cprgFork lvl r@(SystemRNG entPool)   = (r, cprgCreate entPool lvl)
     cprgGenerate n g@(SystemRNG entPool) = (B.unsafeCreate n (grabEntropyPtr n entPool), g)
+    -- we don't need to do anything different when generating withEntropy, as the generated
+    -- bytes are already stricly entropy bytes.
+    cprgGenerateWithEntropy n g          = cprgGenerate n g
