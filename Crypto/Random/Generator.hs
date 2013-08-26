@@ -25,7 +25,7 @@ class CPRG gen where
     -- debugging and testing purpose.
     cprgCreate :: EntropyPool -> EntropyReseedLevel -> gen
 
-    -- | Split a CPRG into a new independent CPRG.
+    -- | Fork a CPRG into a new independent CPRG.
     --
     -- As entropy is mixed to generate safely a new generator,
     -- 2 calls with the same CPRG will not produce the same output.
@@ -33,7 +33,7 @@ class CPRG gen where
     -- If EntropyReseed_None is used, then the generated cprg will be
     -- stricly using the bytes generated from the first generator.
     -- This is not a recommended level except for debugging and testing purpose.
-    cprgFork   :: EntropyReseedLevel -> gen -> (gen, gen)
+    cprgFork :: EntropyReseedLevel -> gen -> (gen, gen)
 
     -- | Generate a number of bytes using the CPRG.
     --
