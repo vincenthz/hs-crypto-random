@@ -14,7 +14,7 @@ module Crypto.Random.Entropy.Unix
 import Foreign.Ptr
 import Data.Word (Word8)
 import Crypto.Random.Entropy.Source
-import Control.Exception
+import Control.Exception as E
 import System.Posix.Types (Fd)
 import System.Posix.IO
 
@@ -38,7 +38,7 @@ instance EntropySource DevURandom where
 
 openDev :: String -> IO (Maybe H)
 openDev filepath = (Just `fmap` openFd filepath ReadOnly Nothing fileFlags)
-    `catch` \(_ :: IOException) -> return Nothing
+    `E.catch` \(_ :: IOException) -> return Nothing
   where fileFlags = defaultFileFlags { nonBlock = True }
 
 closeDev :: H -> IO ()
@@ -47,4 +47,4 @@ closeDev h = closeFd h
 gatherDevEntropy :: H -> Ptr Word8 -> Int -> IO Int
 gatherDevEntropy fd ptr sz =
      (fromIntegral `fmap` fdReadBuf fd ptr (fromIntegral sz))
-    `catch` \(_ :: IOException) -> return 0
+    `E.catch` \(_ :: IOException) -> return 0
