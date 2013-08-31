@@ -21,7 +21,7 @@ import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Utils (toBool)
 import Foreign.Storable (peek)
 
-import Crypto.Random.Entropy.Sig
+import Crypto.Random.Entropy.Source
 
 -- Define the constants we need from WinCrypt.h 
 msDefProv :: String
@@ -36,7 +36,7 @@ cryptVerifyContext = 0xF0000000
 -- | handle to windows crypto API for random generation
 newtype WinCryptoAPI = WinCryptoAPI CryptCtx
 
-instance EntropyHandle WinCryptoAPI where
+instance EntropySource WinCryptoAPI where
     entropyOpen                    = fmap WinCryptoAPI `fmap` cryptAcquireCtx
     entropyGather (WinCryptoAPI h) = cryptGenRandom h
     entropyClose  (WinCryptoAPI h) = cryptReleaseCtx h

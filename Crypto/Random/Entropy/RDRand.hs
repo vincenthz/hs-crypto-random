@@ -13,7 +13,7 @@ module Crypto.Random.Entropy.RDRand
 import Foreign.Ptr
 import Foreign.C.Types
 import Data.Word (Word8)
-import Crypto.Random.Entropy.Sig
+import Crypto.Random.Entropy.Source
 
 foreign import ccall unsafe "crypto_random_cpu_has_rdrand"
    c_cpu_has_rdrand :: IO CInt
@@ -24,7 +24,7 @@ foreign import ccall unsafe "crypto_random_get_rand_bytes"
 -- | fake handle to Intel RDRand entropy cpu instruction
 data RDRand = RDRand
 
-instance EntropyHandle RDRand where
+instance EntropySource RDRand where
     entropyOpen     = rdrandGrab
     entropyGather _ = rdrandGetBytes
     entropyClose  _ = return ()

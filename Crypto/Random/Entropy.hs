@@ -23,7 +23,7 @@ import Data.Word (Word8)
 import Foreign.Marshal.Utils (copyBytes)
 import Foreign.Ptr (plusPtr, Ptr)
 
-import Crypto.Random.Entropy.Sig
+import Crypto.Random.Entropy.Source
 #ifdef SUPPORT_RDRAND
 import Crypto.Random.Entropy.RDRand
 #endif
@@ -46,11 +46,11 @@ supportedBackends =
 #endif
     ]
 
-data EntropyBackend = forall b . EntropyHandle b => EntropyBackend b
+data EntropyBackend = forall b . EntropySource b => EntropyBackend b
 
-openBackend :: EntropyHandle b => b -> IO (Maybe EntropyBackend)
+openBackend :: EntropySource b => b -> IO (Maybe EntropyBackend)
 openBackend b = fmap EntropyBackend `fmap` callOpen b
-  where callOpen :: EntropyHandle b => b -> IO (Maybe b)
+  where callOpen :: EntropySource b => b -> IO (Maybe b)
         callOpen _ = entropyOpen
 
 gatherBackend :: EntropyBackend -> Ptr Word8 -> Int -> IO Int

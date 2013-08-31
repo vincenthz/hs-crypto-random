@@ -22,7 +22,7 @@ Library
                    , Crypto.Random.API
   Other-modules:     Crypto.Random.Generator
                    , Crypto.Random.Entropy
-                   , Crypto.Random.Entropy.Sig
+                   , Crypto.Random.Entropy.Source
   ghc-options:       -Wall
   if os(windows)
     cpp-options:    -DWINDOWS

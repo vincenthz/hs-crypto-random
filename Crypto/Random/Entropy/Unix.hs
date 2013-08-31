@@ -13,7 +13,7 @@ module Crypto.Random.Entropy.Unix
 
 import Foreign.Ptr
 import Data.Word (Word8)
-import Crypto.Random.Entropy.Sig
+import Crypto.Random.Entropy.Source
 import Control.Exception
 import System.Posix.Types (Fd)
 import System.Posix.IO
@@ -26,12 +26,12 @@ newtype DevRandom  = DevRandom H
 -- | Entropy device /dev/urandom on unix system 
 newtype DevURandom = DevURandom H
 
-instance EntropyHandle DevRandom where
+instance EntropySource DevRandom where
     entropyOpen                 = fmap DevRandom `fmap` openDev "/dev/random"
     entropyGather (DevRandom h) = gatherDevEntropy h
     entropyClose (DevRandom h)  = closeDev h
 
-instance EntropyHandle DevURandom where
+instance EntropySource DevURandom where
     entropyOpen                  = fmap DevURandom `fmap` openDev "/dev/urandom"
     entropyGather (DevURandom h) = gatherDevEntropy h
     entropyClose (DevURandom h)  = closeDev h
