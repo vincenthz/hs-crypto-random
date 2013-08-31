@@ -18,6 +18,7 @@ module Crypto.Random
     , grabEntropy
     -- * Random generation
     , CPRG(..)
+    , withRandomBytes
     -- * System generator
     , SystemRNG
     ) where
@@ -43,3 +44,10 @@ instance CPRG SystemRNG where
     -- we don't need to do anything different when generating withEntropy, as the generated
     -- bytes are already stricly entropy bytes.
     cprgGenerateWithEntropy n g          = cprgGenerate n g
+
+-- | generate @len random bytes and mapped the bytes to the function @f.
+--
+-- This is equivalent to use Control.Arrow 'first' with 'cprgGenerate'
+withRandomBytes :: CPRG g => g -> Int -> (ByteString -> a) -> (a, g)
+withRandomBytes rng len f = (f bs, rng')
+  where (bs, rng') = cprgGenerate len rng
