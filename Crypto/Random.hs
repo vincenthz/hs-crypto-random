@@ -15,6 +15,7 @@ module Crypto.Random
       EntropyPool
     , EntropyReseedLevel(..)
     , createEntropyPool
+    , grabEntropy
     -- * Random generation
     , CPRG(..)
     -- * System generator
