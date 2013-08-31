@@ -19,6 +19,7 @@ Library
                    , vector
   Exposed-modules:   Crypto.Random
                    , Crypto.Random.Test
+                   , Crypto.Random.API
   Other-modules:     Crypto.Random.Generator
                    , Crypto.Random.Entropy
                    , Crypto.Random.Entropy.Sig
