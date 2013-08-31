@@ -64,8 +64,8 @@ instance EntropySource TestEntropySource where
       where (B.PS fptr o len) = bs
             loop d s i
                 | i == 0    = return ()
-                | i <= len  = B.memcpy d s i
-                | otherwise = B.memcpy d s len >> loop (d `plusPtr` len) s (i-len)
+                | i <= len  = B.memcpy d s (fromIntegral i)
+                | otherwise = B.memcpy d s (fromIntegral len) >> loop (d `plusPtr` len) s (i-len)
     entropyClose _ = return ()
 
 openBackend :: EntropySource b => b -> IO (Maybe EntropyBackend)
