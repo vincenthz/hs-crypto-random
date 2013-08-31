@@ -13,7 +13,6 @@ module Crypto.Random
     (
     -- * Entropy
       EntropyPool
-    , EntropyReseedLevel(..)
     , createEntropyPool
     , grabEntropy
     -- * Random generation
@@ -25,6 +24,7 @@ module Crypto.Random
 
 import Crypto.Random.Entropy
 import Crypto.Random.Generator
+import Data.ByteString (ByteString)
 import qualified Data.ByteString.Internal as B (unsafeCreate)
 
 -- | System entropy generator.
@@ -38,8 +38,9 @@ import qualified Data.ByteString.Internal as B (unsafeCreate)
 data SystemRNG = SystemRNG EntropyPool
 
 instance CPRG SystemRNG where
-    cprgCreate entPool _                 = SystemRNG entPool
-    cprgFork lvl r@(SystemRNG entPool)   = (r, cprgCreate entPool lvl)
+    cprgCreate entPool                   = SystemRNG entPool
+    cprgSetReseedThreshold _ r           = r
+    cprgFork r@(SystemRNG entPool)       = (r, cprgCreate entPool)
     cprgGenerate n g@(SystemRNG entPool) = (B.unsafeCreate n (grabEntropyPtr n entPool), g)
     -- we don't need to do anything different when generating withEntropy, as the generated
     -- bytes are already stricly entropy bytes.

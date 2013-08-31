@@ -9,7 +9,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 module Crypto.Random.Entropy
     ( EntropyPool
-    , EntropyReseedLevel(..)
     , createEntropyPool
     , grabEntropyPtr
     , grabEntropy
@@ -46,24 +45,6 @@ supportedBackends =
     openBackend (undefined :: DevRandom), openBackend (undefined :: DevURandom)
 #endif
     ]
-
--- | Define an abstraction for the speed in which reseeding from entropy occurs.
---
--- a None level would imply that no such thing happens, and that there's no
--- way to prevent the whole stream to be guessed in a state compromise.
--- This level is only available for testing and debugging purpose, and should
--- not be used in production or real world application.
---
--- a Normal level would be typically reseeded with entropy half way before the period
--- of the CPRG is exhausted.
---
--- A High level would be typically reseeded with entropy typically around 2K to 8K of
--- random data.
-data EntropyReseedLevel =
-      EntropyReseed_High
-    | EntropyReseed_Normal
-    | EntropyReseed_None
-    deriving (Show,Eq,Ord,Enum)
 
 data EntropyBackend = forall b . EntropyHandle b => EntropyBackend b
 

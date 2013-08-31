@@ -10,30 +10,31 @@ module Crypto.Random.Generator
     ) where
 
 import Data.ByteString (ByteString)
-import Crypto.Random.Entropy (EntropyPool, EntropyReseedLevel)
+import Crypto.Random.Entropy (EntropyPool)
 
 -- | Cryptographic Pseudo Random Generator
 class CPRG gen where
     -- | Create a new CPRG using an object of the CryptoGenerator class
     -- and with an explicit reference to an EntropyPool.
+    cprgCreate :: EntropyPool -> gen
+
+    -- | Give the ability to set a threshold of byte generated that after
+    -- being exceeded will result in a reseed with some stateful entropy
+    -- after a call to 'cprgGenerate'
     --
-    -- The reseed level allow user to specify the reseeding frequency,
-    -- during the course of generating bytes.
+    -- If this threshold is exceeded during the set operation, the
+    -- rng should be reseeded here.
     --
-    -- If EntropyReseed_None is used, then the CPRG should never
-    -- be reseeded with entropy bits. this is not recommended except for
-    -- debugging and testing purpose.
-    cprgCreate :: EntropyPool -> EntropyReseedLevel -> gen
+    -- If this value is set to 0, no reseeding will be done and the
+    -- output will be completely predicable. This is not a recommended
+    -- level except for debugging and testing purpose.
+    cprgSetReseedThreshold :: Int -> gen -> gen
 
     -- | Fork a CPRG into a new independent CPRG.
     --
     -- As entropy is mixed to generate safely a new generator,
     -- 2 calls with the same CPRG will not produce the same output.
-    --
-    -- If EntropyReseed_None is used, then the generated cprg will be
-    -- stricly using the bytes generated from the first generator.
-    -- This is not a recommended level except for debugging and testing purpose.
-    cprgFork :: EntropyReseedLevel -> gen -> (gen, gen)
+    cprgFork :: gen -> (gen, gen)
 
     -- | Generate a number of bytes using the CPRG.
     --
