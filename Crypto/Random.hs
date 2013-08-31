@@ -20,6 +20,8 @@ module Crypto.Random
     , withRandomBytes
     -- * System generator
     , SystemRNG
+    -- * Testing and mocking
+    , createTestEntropyPool
     ) where
 
 import Crypto.Random.Entropy

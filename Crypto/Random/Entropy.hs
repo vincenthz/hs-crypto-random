@@ -10,6 +10,7 @@
 module Crypto.Random.Entropy
     ( EntropyPool
     , createEntropyPool
+    , createTestEntropyPool
     , grabEntropyPtr
     , grabEntropy
     ) where
@@ -19,9 +20,13 @@ import Control.Concurrent.MVar
 import System.IO.Unsafe (unsafePerformIO)
 import Data.Maybe (catMaybes)
 import Data.SecureMem
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Internal as B
 import Data.Word (Word8)
 import Foreign.Marshal.Utils (copyBytes)
 import Foreign.Ptr (plusPtr, Ptr)
+import Foreign.ForeignPtr (withForeignPtr)
 
 import Crypto.Random.Entropy.Source
 #ifdef SUPPORT_RDRAND
@@ -48,6 +53,21 @@ supportedBackends =
 
 data EntropyBackend = forall b . EntropySource b => EntropyBackend b
 
+newtype TestEntropySource = TestEntropySource ByteString
+
+instance EntropySource TestEntropySource where
+    entropyOpen    = return Nothing
+    entropyGather (TestEntropySource bs) dst n
+        | len == 1  = B.memset dst (B.index bs 0) (fromIntegral n) >> return n
+        | otherwise = do withForeignPtr fptr $ \ptr -> loop dst (ptr `plusPtr` o) n
+                         return n
+      where (B.PS fptr o len) = bs
+            loop d s i
+                | i == 0    = return ()
+                | i <= len  = B.memcpy d s i
+                | otherwise = B.memcpy d s len >> loop (d `plusPtr` len) s (i-len)
+    entropyClose _ = return ()
+
 openBackend :: EntropySource b => b -> IO (Maybe EntropyBackend)
 openBackend b = fmap EntropyBackend `fmap` callOpen b
   where callOpen :: EntropySource b => b -> IO (Maybe b)
@@ -67,10 +87,9 @@ defaultPoolSize = 4096
 -- | Create a new entropy pool of a specific size
 --
 -- While you can create as many entropy pool as you want, the pool can be shared between multiples RNGs.
-createEntropyPoolWith :: Int -> IO EntropyPool
-createEntropyPoolWith poolSize = do
-    backends <- catMaybes `fmap` sequence supportedBackends
-    when (null backends) $ fail "cannot get any source of entropy on the system"
+createEntropyPoolWith :: Int -> [EntropyBackend] -> IO EntropyPool
+createEntropyPoolWith poolSize backends = do
+    when (null backends) $ fail "cannot get any source of entropy on this system"
     sm <- allocateSecureMem poolSize
     m  <- newMVar 0
     withSecureMemPtr sm $ replenish poolSize backends
@@ -80,7 +99,21 @@ createEntropyPoolWith poolSize = do
 --
 -- While you can create as many entropy pool as you want, the pool can be shared between multiples RNGs.
 createEntropyPool :: IO EntropyPool
-createEntropyPool = createEntropyPoolWith defaultPoolSize
+createEntropyPool = do
+    backends <- catMaybes `fmap` sequence supportedBackends
+    createEntropyPoolWith defaultPoolSize backends
+
+-- | Create a dummy entropy pool that is deterministic, and
+-- dependant on the input bytestring only.
+--
+-- This is stricly reserved for testing purpose when a deterministic seed need
+-- to be generated with deterministic RNGs.
+--
+-- Do not use in production code.
+createTestEntropyPool :: ByteString -> EntropyPool
+createTestEntropyPool bs
+    | B.null bs = error "cannot create entropy pool from an empty bytestring"
+    | otherwise = unsafePerformIO $ createEntropyPoolWith defaultPoolSize [EntropyBackend $ TestEntropySource bs]
 
 -- | Put a chunk of the entropy pool into a buffer
 grabEntropyPtr :: Int -> EntropyPool -> Ptr Word8 -> IO ()
