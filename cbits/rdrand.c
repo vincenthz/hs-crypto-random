@@ -41,13 +41,29 @@ int crypto_random_cpu_has_rdrand()
 	return (cx & 0x40000000);
 }
 
+/* sadly many people are still using an old binutils,
+ * leading to report that instruction is not recognized.
+ */
+#if 0
 /* Returns 1 on success */
 static inline int crypto_random_rdrand64_step(uint64_t *buffer)
 {
 	unsigned char err;
-	asm volatile("rdrand %0 ; setc %1" : "=r" (*buffer), "=qm" (err));
+	asm volatile ("rdrand %0; setc %1" : "=r" (*buffer), "=qm" (err));
 	return (int) err;
 }
+#endif
+
+/* inline encoding of 'rdrand %rax' to cover old binutils
+ * - no inputs
+ * - 'cc' to the clobber list as we modify condition code.
+ * - output of rdrand in rax and have a 8 bit error condition
+ */
+#define inline_rdrand_rax(val, err) \
+	asm(".byte 0x48,0x0f,0xc7,0xf0; setc %1" \
+	   : "=a" (val), "=q" (err) \
+	   : \
+	   : "cc")
 
 /* Returns the number of bytes succesfully generated */
 int crypto_random_get_rand_bytes(uint8_t *buffer, size_t len)
@@ -55,10 +71,12 @@ int crypto_random_get_rand_bytes(uint8_t *buffer, size_t len)
 	uint64_t tmp;
 	int aligned = (unsigned long) buffer % 8;
 	int orig_len = len;
+	int to_alignment = 8 - aligned;
+	uint8_t ok;
 
 	if (aligned != 0) {
-		int to_alignment = 8 - aligned;
-		if (!crypto_random_rdrand64_step(&tmp))
+		inline_rdrand_rax(tmp, ok);
+		if (!ok)
 			return 0;
 		memcpy(buffer, (uint8_t *) &tmp, to_alignment);
 		buffer += to_alignment;
@@ -66,12 +84,15 @@ int crypto_random_get_rand_bytes(uint8_t *buffer, size_t len)
 	}
 
 	for (; len >= 8; buffer += 8, len -= 8) {
-		if (!crypto_random_rdrand64_step((uint64_t *) buffer))
+		inline_rdrand_rax(tmp, ok);
+		if (!ok)
 			return (orig_len - len);
+		*buffer = tmp;
 	}
 
 	if (len > 0) {
-		if (!crypto_random_rdrand64_step(&tmp))
+		inline_rdrand_rax(tmp, ok);
+		if (!ok)
 			return (orig_len - len);
 		memcpy(buffer, (uint8_t *) &tmp, len);
 	}
