@@ -87,7 +87,7 @@ int crypto_random_get_rand_bytes(uint8_t *buffer, size_t len)
 		inline_rdrand_rax(tmp, ok);
 		if (!ok)
 			return (orig_len - len);
-		*buffer = tmp;
+		*((uint64_t *) buffer) = tmp;
 	}
 
 	if (len > 0) {
