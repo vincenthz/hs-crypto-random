@@ -129,7 +129,7 @@ grabEntropyPtr n (EntropyPool backends posM sm) outPtr =
                     if pos == poolSize
                         then replenish poolSize backends s >> return 0
                         else return pos
-                let m = min (poolSize - wrappedPos) left 
+                let m = min (poolSize - wrappedPos) left
                 copyBytes d (s `plusPtr` wrappedPos) m
                 copyLoop (d `plusPtr` m) s (wrappedPos + m) (left - m)
 
