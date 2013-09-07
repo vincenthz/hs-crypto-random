@@ -13,6 +13,7 @@ module Crypto.Random.Entropy
     , createTestEntropyPool
     , grabEntropyPtr
     , grabEntropy
+    , grabEntropyIO
     ) where
 
 import Control.Monad (when)
@@ -134,12 +135,21 @@ grabEntropyPtr n (EntropyPool backends posM sm) outPtr =
                 copyLoop (d `plusPtr` m) s (wrappedPos + m) (left - m)
 
 -- | Grab a chunk of entropy from the entropy pool.
-{-# NOINLINE grabEntropy #-}
-grabEntropy :: Int -> EntropyPool -> SecureMem
-grabEntropy n pool = unsafePerformIO $ do
+grabEntropyIO :: Int -> EntropyPool -> IO SecureMem
+grabEntropyIO n pool = do
     out <- allocateSecureMem n
     withSecureMemPtr out $ grabEntropyPtr n pool
     return $ out
+
+-- | Grab a chunk of entropy from the entropy pool.
+--
+-- Great care need to be taken here when using the output,
+-- as this use unsafePerformIO to actually get entropy.
+--
+-- Use grabEntropyIO if unsure.
+{-# NOINLINE grabEntropy #-}
+grabEntropy :: Int -> EntropyPool -> SecureMem
+grabEntropy n pool = unsafePerformIO $ grabEntropyIO n pool
 
 replenish :: Int -> [EntropyBackend] -> Ptr Word8 -> IO ()
 replenish poolSize backends ptr = loop 0 backends ptr poolSize

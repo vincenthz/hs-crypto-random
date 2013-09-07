@@ -15,6 +15,7 @@ module Crypto.Random
       EntropyPool
     , createEntropyPool
     , grabEntropy
+    , grabEntropyIO
     -- * Random generation
     , CPRG(..)
     , withRandomBytes
