@@ -34,12 +34,21 @@ cryptVerifyContext :: Word32
 cryptVerifyContext = 0xF0000000
 
 -- | handle to windows crypto API for random generation
-newtype WinCryptoAPI = WinCryptoAPI CryptCtx
+data WinCryptoAPI = WinCryptoAPI
 
 instance EntropySource WinCryptoAPI where
-    entropyOpen                    = fmap WinCryptoAPI `fmap` cryptAcquireCtx
-    entropyGather (WinCryptoAPI h) = cryptGenRandom h
-    entropyClose  (WinCryptoAPI h) = cryptReleaseCtx h
+    entropyOpen = do
+        mctx <- cryptAcquireCtx
+        maybe (return Nothing) (\ctx -> cryptReleaseCtx ctx >> return (Just WinCryptoAPI)) mctx
+    entropyGather WinCryptoAPI ptr n = do
+        mctx <- cryptAcquireCtx
+        case mctx of
+            Nothing  -> error "cannot re-grab win crypto api"
+            Just ctx -> do
+                r <- cryptGenRandom ctx ptr n
+                cryptReleaseCtx ctx
+                return r
+    entropyClose WinCryptoAPI = return ()
 
 type CryptCtx = Word32
 
