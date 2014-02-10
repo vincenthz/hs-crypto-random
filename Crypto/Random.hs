@@ -9,6 +9,7 @@
 -- random generator.
 --
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 module Crypto.Random
     (
     -- * Entropy
@@ -28,6 +29,7 @@ module Crypto.Random
 import Crypto.Random.Entropy
 import Crypto.Random.Generator
 import Data.ByteString (ByteString)
+import Data.Typeable (Typeable)
 import qualified Data.ByteString.Internal as B (unsafeCreate)
 
 -- | System entropy generator.
@@ -39,6 +41,7 @@ import qualified Data.ByteString.Internal as B (unsafeCreate)
 -- use for testing and debugging purpose, but otherwise for real world use case
 -- should be fine.
 data SystemRNG = SystemRNG EntropyPool
+  deriving Typeable
 
 instance CPRG SystemRNG where
     cprgCreate entPool                   = SystemRNG entPool
