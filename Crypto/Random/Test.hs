@@ -7,6 +7,8 @@
 --
 -- Provide way to test usual simple statisticals test for randomness
 --
+{-# LANGUAGE GADTs #-}
+
 module Crypto.Random.Test
     ( RandomTestState
     , RandomTestResult(..)
