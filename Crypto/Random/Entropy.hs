@@ -7,6 +7,7 @@
 --
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 module Crypto.Random.Entropy
     ( EntropyPool
     , createEntropyPool
@@ -21,6 +22,7 @@ import Control.Concurrent.MVar
 import System.IO.Unsafe (unsafePerformIO)
 import Data.Maybe (catMaybes)
 import Data.SecureMem
+import Data.Typeable (Typeable)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Internal as B
@@ -80,6 +82,7 @@ gatherBackend (EntropyBackend backend) ptr n = entropyGather backend ptr n
 -- | Pool of Entropy. contains a self mutating pool of entropy,
 -- that is always guarantee to contains data.
 data EntropyPool = EntropyPool [EntropyBackend] (MVar Int) SecureMem
+  deriving Typeable
 
 -- size of entropy pool by default
 defaultPoolSize :: Int
