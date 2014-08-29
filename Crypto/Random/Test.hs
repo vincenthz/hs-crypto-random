@@ -50,6 +50,7 @@ randomTestAppend (RandomTestState buckets) = loop
                 let (b1,b2) = L.splitAt monteN bs
                 mapM_ (addVec 1 . fromIntegral) $ L.unpack b1
                 loop b2
+        addVec :: Word64 -> Int -> IO ()
         addVec a i = M.read buckets i >>= \d -> M.write buckets i $! d+a
 
 -- | Finalize random test state into some result
