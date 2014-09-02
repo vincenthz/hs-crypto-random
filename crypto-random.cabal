@@ -1,5 +1,5 @@
 Name:                crypto-random
-Version:             0.0.7
+Version:             0.0.8
 Description:         Simple cryptographic random related types
 License:             BSD3
 License-file:        LICENSE
