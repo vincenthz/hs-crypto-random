@@ -32,7 +32,12 @@ Library
   else
     Build-Depends:  unix
     Other-modules:  Crypto.Random.Entropy.Unix
-    
+
+  if arch(i386)
+    cpp-options: -DARCH_X86
+  if arch(x86_64)
+    cpp-options: -DARCH_X86_64
+
   if arch(x86_64)
     cpp-options:    -DSUPPORT_RDRAND
     Other-modules:  Crypto.Random.Entropy.RDRand
