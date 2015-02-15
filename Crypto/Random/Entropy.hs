@@ -90,7 +90,7 @@ defaultPoolSize = 4096
 
 -- | Create a new entropy pool of a specific size
 --
--- While you can create as many entropy pool as you want, the pool can be shared between multiples RNGs.
+-- You can create as many entropy pools as you want, and a given pool can be shared between multiples RNGs.
 createEntropyPoolWith :: Int -> [EntropyBackend] -> IO EntropyPool
 createEntropyPoolWith poolSize backends = do
     when (null backends) $ fail "cannot get any source of entropy on this system"
