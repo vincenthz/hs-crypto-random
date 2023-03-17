@@ -48,7 +48,7 @@ testOpen filepath = do
         Just h  -> closeDev h >> return (Just filepath)
 
 openDev :: String -> IO (Maybe H)
-openDev filepath = (Just `fmap` openFd filepath ReadOnly Nothing fileFlags)
+openDev filepath = (Just `fmap` openFd filepath ReadOnly fileFlags)
     `E.catch` \(_ :: IOException) -> return Nothing
   where fileFlags = defaultFileFlags { nonBlock = True }
 
